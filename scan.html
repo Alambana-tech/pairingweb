@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Scan & Connect Mi Band 9</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<header>Mi Band 9 Fitness</header>
+<nav class="sidebar">
+  <a href="dashboard.html">Dashboard</a>
+  <a href="scan.html" class="active">Scan & Connect</a>
+</nav>
+<main class="content">
+  <section class="card">
+    <h3>Scan & Connect</h3>
+    <button id="btnScan" class="primary">Scan &amp; Connect Mi Band 9</button>
+    <p id="status" style="margin-top:1rem;">Tekan tombol untuk mulai scanning.</p>
+
+    <div id="deviceInfo" style="display:none; margin-top:1.5rem;">
+      <p><strong>Device Name:</strong> <span id="deviceName">-</span></p>
+      <p><strong>Battery Level:</strong> <span id="batteryLevel">-</span></p>
+      <p><strong>Connection Status:</strong> <span id="connStatus">Disconnected</span></p>
+      <p><strong>Heart Rate:</strong> <span id="heartRate">-</span> bpm</p>
+      <button id="btnDisconnect" class="primary" style="background:#bb3e00; margin-top:1rem;">Disconnect</button>
+    </div>
+  </section>
+</main>
+<footer>
+  &copy; 2025 Demo by ChatGPT | BLE support di Chrome/Edge, HTTPS wajib
+</footer>
+<script type="module">
+  import { MiBandBLE } from './js/ble.js';
+
+  const btnScan = document.getElementById('btnScan');
+  const status = document.getElementById('status');
+  const deviceNameEl = document.getElementById('deviceName');
+  const batteryLevelEl = document.getElementById('batteryLevel');
+  const connStatusEl = document.getElementById('connStatus');
+  const heartRateEl = document.getElementById('heartRate');
+  const deviceInfoDiv = document.getElementById('deviceInfo');
+  const btnDisconnect = document.getElementById('btnDisconnect');
+
+  const miBand = new MiBandBLE();
+
+  btnScan.onclick = async () => {
+    try {
+      btnScan.disabled = true;
+      status.textContent = 'Mencari perangkat...';
+      deviceInfoDiv.style.display = 'none';
+      batteryLevelEl.textContent = '-';
+      heartRateEl.textContent = '-';
+      connStatusEl.textContent = 'Disconnected';
+
+      const device = await miBand.scanAndConnect();
+
+      deviceNameEl.textContent = device.name || 'Unknown';
+      connStatusEl.textContent = 'Connecting...';
+      status.textContent = `Terhubung ke ${device.name}...`;
+
+      miBand.setOnDisconnectedCallback(() => {
+        status.textContent = 'Perangkat terputus.';
+        connStatusEl.textContent = 'Disconnected';
+        deviceInfoDiv.style.display = 'none';
+        btnScan.disabled = false;
+      });
+
+      connStatusEl.textContent = 'Connected';
+      status.textContent = `Terhubung ke ${device.name}`;
+      deviceInfoDiv.style.display = 'block';
+
+      const battery = await miBand.readBatteryLevel();
+      batteryLevelEl.textContent = battery + '%';
+
+      await miBand.startHeartRateNotifications((hr) => {
+        heartRateEl.textContent = hr;
+      });
+    } catch (error) {
+      status.textContent = 'Error: ' + error.message;
+      btnScan.disabled = false;
+      console.error(error);
+    }
+  };
+
+  btnDisconnect.onclick = () => {
+    miBand.disconnect();
+    status.textContent = 'Perangkat terputus.';
+    connStatusEl.textContent = 'Disconnected';
+    deviceInfoDiv.style.display = 'none';
+    btnScan.disabled = false;
+  };
+</script>
+</body>
+</html>

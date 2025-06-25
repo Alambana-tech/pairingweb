@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Scan QR Code Mi Band 9</title>
+<link rel="stylesheet" href="css/style.css" />
+<script src="https://unpkg.com/html5-qrcode@2.3.7/minified/html5-qrcode.min.js"></script>
+</head>
+<body>
+<header>Scan QR Code Mi Band 9</header>
+<nav class="sidebar">
+  <a href="dashboard.html">Dashboard</a>
+  <a href="scan.html">Scan & Connect</a>
+  <a href="scan-qr.html" class="active">Scan QR Code</a>
+</nav>
+<main class="content">
+  <section class="card">
+    <h3>Scan QR Code</h3>
+    <div id="qr-reader" style="width: 100%; max-width: 400px;"></div>
+    <p id="qr-result" style="margin-top: 1rem; color: #ffa726;">Hasil scan: -</p>
+  </section>
+</main>
+<footer>
+  &copy; 2025 Demo by ChatGPT | BLE & Camera support di Chrome/Edge, HTTPS wajib
+</footer>
+<script>
+  function onScanSuccess(decodedText, decodedResult) {
+    document.getElementById('qr-result').textContent = `Hasil scan: ${decodedText}`;
+    // Lakukan aksi dengan hasil scan di sini (misal connect BLE)
+    html5QrcodeScanner.clear(); // hentikan scan setelah berhasil
+  }
+
+  var html5QrcodeScanner = new Html5Qrcode("qr-reader");
+  html5QrcodeScanner.start(
+    { facingMode: "environment" },
+    {
+      fps: 10,
+      qrbox: 250
+    },
+    onScanSuccess
+  ).catch(err => {
+    console.error(err);
+    document.getElementById('qr-result').textContent = 'Error mengakses kamera atau scan QR';
+  });
+</script>
+</body>
+</html>
